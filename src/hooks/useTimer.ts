@@ -9,8 +9,7 @@ interface TimerState {
   elapsed: number;
 }
 
-interface TimerRef {
-  status: TimerStatus;
+interface TimerInternals {
   accumulated: number;
   startTime: number;
   goalNotified: boolean;
@@ -22,8 +21,7 @@ export function useTimer(goalSeconds: number | null = null) {
     elapsed: 0,
   });
 
-  const ref = useRef<TimerRef>({
-    status: 'idle',
+  const ref = useRef<TimerInternals>({
     accumulated: 0,
     startTime: 0,
     goalNotified: false,
@@ -31,7 +29,8 @@ export function useTimer(goalSeconds: number | null = null) {
 
   useInterval(
     () => {
-      const elapsed = ref.current.accumulated + (now() - ref.current.startTime);
+      const { accumulated, startTime } = ref.current;
+      const elapsed = accumulated + (now() - startTime);
 
       if (
         goalSeconds !== null &&
@@ -40,7 +39,6 @@ export function useTimer(goalSeconds: number | null = null) {
       ) {
         ref.current.goalNotified = true;
         ref.current.accumulated = goalSeconds * 1000;
-        ref.current.status = 'paused';
         setState({ status: 'paused', elapsed: goalSeconds * 1000 });
         alert(`>>>${goalSeconds}<<<`);
         return;
@@ -52,25 +50,22 @@ export function useTimer(goalSeconds: number | null = null) {
   );
 
   const start = useCallback(() => {
-    if (ref.current.status === 'running') return;
+    if (state.status === 'running') return;
 
     ref.current.startTime = now();
-    ref.current.status = 'running';
     setState((prev) => ({ ...prev, status: 'running' }));
-  }, []);
+  }, [state.status]);
 
   const pause = useCallback(() => {
-    if (ref.current.status !== 'running') return;
+    if (state.status !== 'running') return;
 
     ref.current.accumulated += now() - ref.current.startTime;
-    ref.current.status = 'paused';
     setState({ status: 'paused', elapsed: ref.current.accumulated });
-  }, []);
+  }, [state.status]);
 
   const reset = useCallback(() => {
     ref.current.accumulated = 0;
     ref.current.startTime = 0;
-    ref.current.status = 'idle';
     ref.current.goalNotified = false;
     setState({ status: 'idle', elapsed: 0 });
   }, []);
