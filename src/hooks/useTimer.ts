@@ -44,6 +44,8 @@ export function useTimer(goalSeconds: number | null = null) {
         return;
       }
 
+      if (ref.current.goalNotified) return;
+
       setState({ status: 'running', elapsed });
     },
     state.status === 'running' ? TICK_INTERVAL_MS : false,
