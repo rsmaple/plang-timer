@@ -13,9 +13,10 @@ interface TimerRef {
   status: TimerStatus;
   accumulated: number;
   startTime: number;
+  goalNotified: boolean;
 }
 
-export function useTimer() {
+export function useTimer(goalSeconds: number | null = null) {
   const [state, setState] = useState<TimerState>({
     status: 'idle',
     elapsed: 0,
@@ -25,11 +26,26 @@ export function useTimer() {
     status: 'idle',
     accumulated: 0,
     startTime: 0,
+    goalNotified: false,
   });
 
   useInterval(
     () => {
       const elapsed = ref.current.accumulated + (now() - ref.current.startTime);
+
+      if (
+        goalSeconds !== null &&
+        !ref.current.goalNotified &&
+        elapsed >= goalSeconds * 1000
+      ) {
+        ref.current.goalNotified = true;
+        ref.current.accumulated = goalSeconds * 1000;
+        ref.current.status = 'paused';
+        setState({ status: 'paused', elapsed: goalSeconds * 1000 });
+        alert(`>>>${goalSeconds}<<<`);
+        return;
+      }
+
       setState({ status: 'running', elapsed });
     },
     state.status === 'running' ? TICK_INTERVAL_MS : false,
@@ -55,6 +71,7 @@ export function useTimer() {
     ref.current.accumulated = 0;
     ref.current.startTime = 0;
     ref.current.status = 'idle';
+    ref.current.goalNotified = false;
     setState({ status: 'idle', elapsed: 0 });
   }, []);
 
