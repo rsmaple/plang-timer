@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useInterval } from './useIterval';
+import { useInterval } from './useInterval';
 
 describe('useInterval', () => {
   beforeEach(() => {

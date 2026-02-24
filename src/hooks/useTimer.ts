@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { now, TICK_INTERVAL_MS } from '../time';
-import { useInterval } from './useIterval';
+import { useInterval } from './useInterval';
 
 export type TimerStatus = 'idle' | 'running' | 'paused';
 
