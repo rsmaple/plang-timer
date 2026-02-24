@@ -33,6 +33,21 @@ npx vitest
 
 rAF는 비활성 탭에서 완전히 멈춥니다. 타이머 앱은 백그라운드에서도 시간이 흘러야 자연스럽다고 생각했습니다. 그리고 요구사항이 **초 단위 카운트업**이어서, rAF를 쓰면 매 프레임(60fps) loop를 돌리면서 "초가 바뀌었나?"만 확인하는 오버엔지니어링이 됩니다. setInterval(1000)이면 브라우저가 알아서 1초 뒤에 깨워줍니다. rAF가 의미 있으려면 센티초/밀리초 단위로 빠르게 표시가 갱신되는 UI일 때입니다.
 
+#### react-scan 측정 결과
+
+동일한 타이머 로직을 setInterval과 rAF 두 가지 스케줄링으로 구현하고, react-scan으로 30초간 리렌더링을 측정했습니다.
+
+![react-scan 렌더링 비교](docs/react_scan_raf.png)
+
+| 스케줄링 | 60초 동안 렌더 횟수 | 초당 렌더 |
+|---|---|---|
+| setInterval(1000) | ~60 | ~1 |
+| requestAnimationFrame | ~3396 | ~60 |
+
+`formatTime()`은 초 단위 출력이라 화면에 보이는 값은 1초에 한 번만 바뀝니다. rAF 쪽의 나머지 ~59회/초(60 - 1)는 DOM 변경 없이 React가 diffing만 반복하는 불필요한 렌더입니다.
+
+**백그라운드 탭 테스트**: Chrome을 최소화하고 7분 후 복귀했을 때, 두 타이머의 표시 시간은 동일했습니다. rAF는 백그라운드에서 콜백이 멈추지만, 탭 복귀 시 `elapsed = accumulated + (now() - startTime)`이 한 번에 정확한 값을 계산하기 때문입니다. 시간의 정확도는 스케줄링 방식과 무관하게 `performance.now()`가 보장합니다.
+
 ## React 설계
 
 ### ref와 state 분리
@@ -101,7 +116,9 @@ src/
 ├── time.ts              # performance.now() util함수, formatTime, TICK_INTERVAL_MS
 ├── hooks/
 │   ├── useTimer.ts      # 타이머 로직 (상태 + 시간 계산) 관리 custom hook
-│   └── useInterval.ts   # setInterval 관리 custom hook
+│   ├── useInterval.ts   # setInterval 관리 custom hook
+│   ├── useRafTimer.ts   # rAF 기반 타이머 (성능 비교용)
+│   └── useRafLoop.ts    # requestAnimationFrame 관리 custom hook
 ├── App.tsx
 ├── App.css
 └── index.tsx
