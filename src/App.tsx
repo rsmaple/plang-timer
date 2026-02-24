@@ -29,13 +29,28 @@ const App = () => {
       <div>{formatTime(elapsed)}</div>
 
       <div className="flex items-center gap-2">
-        <button type="button" onClick={start} disabled={status === 'running'}>
+        <button
+          type="button"
+          onClick={start}
+          disabled={status === 'running'}
+          className="disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Start
         </button>
-        <button type="button" onClick={pause} disabled={status !== 'running'}>
+        <button
+          type="button"
+          onClick={pause}
+          disabled={status !== 'running'}
+          className="disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Pause
         </button>
-        <button type="button" onClick={reset} disabled={status === 'idle'}>
+        <button
+          type="button"
+          onClick={reset}
+          disabled={status === 'idle'}
+          className="disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Reset
         </button>
       </div>
